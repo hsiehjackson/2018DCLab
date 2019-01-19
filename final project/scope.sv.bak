@@ -1,0 +1,101 @@
+module  scope (	input logic [7:0] keycode,
+				input        Clk,                // 50 MHz clock
+                             Reset,              // Active-high reset signal
+                             frame_clk,          // The clock indicating a new frame (~60Hz)
+                input [9:0]  DrawX, DrawY,       // Current pixel coordinates
+                output logic is_scope,             // Whether current pixel belongs to scope or background
+			    output logic [9:0] scope_X_Pos, scope_Y_Pos, scope_Draw_X, scope_Draw_Y,
+			    output logic [9:0] X_MOVE, Y_MOVE
+              );
+    
+    parameter [9:0] scope_X_Center=320;  // Center position on the X axis
+    parameter [9:0] scope_Y_Center=240;  // Center position on the Y axis
+    parameter [9:0] scope_X_Min=0;       // Leftmost point on the X axis
+    parameter [9:0] scope_X_Max=639;     // Rightmost point on the X axis
+    parameter [9:0] scope_Y_Min=0;       // Topmost point on the Y axis
+    parameter [9:0] scope_Y_Max=479;     // Bottommost point on the Y axis
+    parameter [9:0] scope_X_Step=20;      // Step size on the X axis
+    parameter [9:0] scope_Y_Step=20;      // Step size on the Y axis
+    parameter [9:0] scope_Size=64;        // scope size
+    
+    logic [9:0] scope_X_Motion, scope_Y_Motion;
+    logic [9:0] scope_X_Pos_in, scope_Y_Pos_in; 
+    logic [9:0] scope_X_Motion_in,  scope_Y_Motion_in;
+    
+    int DistX, DistY, Size;
+    assign DistX = DrawX - scope_X_Pos;
+    assign DistY = DrawY - scope_Y_Pos;
+    assign Size = scope_Size;
+	
+    assign w_on = ~Y_MOVE[10];
+    assign s_on = Y_MOVE[10];
+    assign a_on = ~X_MOVE[10];
+    assign d_on = X_MOVE[10];
+
+  	
+    logic frame_clk_delayed;
+    logic frame_clk_rising_edge;
+    always_ff @ (posedge Clk) begin
+        frame_clk_delayed <= frame_clk;
+    end
+    assign frame_clk_rising_edge = (frame_clk == 1'b1) && (frame_clk_delayed == 1'b0);
+    // Update scope position and motion
+    always_ff @ (posedge Clk)
+    begin
+        if (Reset)
+        begin
+            scope_X_Pos <= scope_X_Center;
+            scope_Y_Pos <= scope_Y_Center;
+        end
+        else if (frame_clk_rising_edge)        // Update only at rising edge of frame clock
+        begin
+            scope_X_Pos <= scope_X_Pos_in;
+            scope_Y_Pos <= scope_Y_Pos_in;
+        end
+        // By defualt, keep the register values.
+    end
+    
+    // You need to modify always_comb block.
+    always_comb
+		begin
+		if(w_on & ((scope_Y_Pos + Y_MOVE) > scope_Y_Min))
+			begin
+			scope_Y_Pos_in = scope_Y_Pos + Y_MOVE;		
+			end	 	 
+		else if(s_on & ((scope_Y_Pos + Y_MOVE) < scope_Y_Max))
+			begin
+			scope_Y_Pos_in = scope_Y_Pos + Y_MOVE;		
+			end
+		else
+			scope_Y_Pos_in = scope_Y_Pos;
+
+
+
+		if(a_on & ((scope_X_Pos + X_MOVE) > scope_X_Min))
+			begin
+			scope_X_Pos_in = scope_X_Pos + X_MOVE ;		
+			end	 
+		else if(d_on & ((scope_X_Pos + X_MOVE ) < scope_X_Max))
+			begin
+			scope_X_Pos_in = scope_X_Pos + X_MOVE;		
+			end
+		else
+			scope_X_Pos_in = scope_X_Pos;
+
+
+		if ( DistX <= scope_Size & DistX >= 0  & DistY <= scope_Size & DistY >= 0) 
+			begin
+			is_scope = 1'b1;
+			scope_Draw_X = DistX;
+			scope_Draw_Y = DistY;
+			end	
+		else
+			begin
+			is_scope = 1'b0;
+			scope_Draw_X = 1'b0;
+			scope_Draw_Y = 1'b0;
+			end
+    end
+    
+endmodule
+

@@ -1,0 +1,359 @@
+
+module  randomDuck (
+					input logic [7:0] keycode,
+					input logic [4:0] randomNo,
+					input  logic shoot,
+					input         Clk,                // 50 MHz clock
+                             Reset,              // Active-high reset signal
+                             frame_clk, is_scope,          // The clock indicating a new frame (~60Hz)
+               		input [9:0]   DrawX, DrawY, scope_X_Pos, scope_Y_Pos,
+               		output logic  is_duck, is_start,             // Whether current pixel belongs to scope or background
+					output logic  [9:0] Duck_Draw_X, Duck_Draw_Y,
+					output logic [4:0] score,
+					output logic [3:0] lives,
+
+					output logic [6:0] bullet,
+					output logic is_gameover
+
+              );
+    
+
+	 
+
+	parameter [9:0] Duck_X_Center = 400;
+	parameter [9:0] Duck_Y_Center=450;  
+    parameter [9:0] Duck_Y_Min=0;       // Topmost point on the Y axis
+    parameter [9:0] Duck_Y_Max=479;     // Bottommost point on the Y axis
+    parameter [9:0] Duck_X_Step=1;      // Step size on the X axis
+    parameter [9:0] Duck_Y_Step=-1;      // Step size on the Y axis
+    parameter [9:0] Duck_SizeX=80;        // Duck sizeX
+	parameter [9:0] Duck_SizeY=64;        // Duck sizeY
+    
+    logic [9:0] Duck_X_Pos, Duck_X_Motion, Duck_Y_Pos;
+	logic [9:0] Duck_Y_Motion = -1;
+    logic [9:0] Duck_X_Pos_in, Duck_X_Motion_in, Duck_Y_Pos_in, Duck_Y_Motion_in;
+    
+    int DistX, DistY, SizeX, SizeY;
+    assign DistX = DrawX - Duck_X_Pos;
+    assign DistY = DrawY - Duck_Y_Pos;
+    assign SizeX = Duck_SizeX;
+	assign SizeY = Duck_SizeY;
+	//assign spacebar_on = (keycode== 8'h29);
+	assign spacebar_on = shoot;
+	assign escape_on = (keycode==8'h76);
+	assign start_on = (keycode==8'h29)
+	 
+	 
+	logic [8:0] xmin1 = 50;
+	logic [8:0] xmin2 = 150;
+	logic [8:0] xmin3 = 250;
+	 
+    logic [8:0] xmax1 = 350;
+	logic [8:0] xmax2 = 450;
+	logic [8:0] xmax3 = 550;
+
+	logic [8:0] count_min = 1;
+	logic [8:0] count_max = 1;
+    logic [8:0] count_min_in;
+	logic [8:0] count_max_in;
+	logic [8:0] Duck_X_Min = 100;
+	logic [8:0] Duck_X_Max = 350;
+	logic shoot_past;
+	 //logic [8:0] Duck_X_Min_in, Duck_X_Max_in;
+    
+    //////// Do not modify the always_ff blocks. ////////
+    // Detect rising edge of frame_clk
+    logic frame_clk_delayed;
+    logic frame_clk_rising_edge;
+    always_ff @ (posedge Clk) begin
+        frame_clk_delayed <= frame_clk;
+    end
+    assign frame_clk_rising_edge = (frame_clk == 1'b1) && (frame_clk_delayed == 1'b0);
+    // Update scope position and motion
+    always_ff @ (posedge Clk)
+    begin
+    	if (Reset)
+    	begin
+		    Duck_X_Pos <= 320;
+            Duck_Y_Pos <= 429;
+			Duck_X_Motion <= 1;
+            Duck_Y_Motion <= -1;
+			count_min <= 1;
+			count_max <= 1;
+			score <= 0;
+			lives <= 0;
+			bullet <= 0;
+			shoot_past <= 1;
+			is_gameover <= 0;
+			is_start <= 1;
+		end
+		else if (is_start == 1)
+		begin
+			Duck_X_Pos <= 320;
+			Duck_Y_Pos <= 429;
+			Duck_X_Motion <= 1;
+			Duck_Y_Motion <= -1;
+			count_min <= 1;
+			count_max <= 1;
+			score <= 0;
+			lives <= 0;
+			bullet <= 0;
+			shoot_past <= 1;
+			is_gameover <= 0;
+			is_start <= 1;
+		end
+		 else if (is_gameover == 1)
+        begin
+        	Duck_X_Pos <= 320;
+			Duck_Y_Pos <= 429;
+			Duck_X_Motion <= 1;
+			Duck_Y_Motion <= -1;
+			count_min <= 1;
+			count_max <= 1;
+			score <= 0;
+			lives <= 0;
+			bullet <= 0;
+			shoot_past <= 1;
+			is_gameover <= 1;
+			is_start <= 0;
+        end
+		else if ( start_on == 1 && is_start == 1) // start game 
+        begin
+			Duck_X_Pos <= 320;
+			Duck_Y_Pos <= 429;
+			Duck_X_Motion <= 1;
+			Duck_Y_Motion <= -1;
+			count_min <= 1;
+			count_max <= 1;
+			score <= 0;
+			lives <= 5;
+			bullet <= 0;
+			shoot_past <= 1;
+			is_gameover <= 0;
+			is_start <= 0;
+        end
+        else if ( escape_on == 1 && is_start == 0)  
+        begin
+			Duck_X_Pos <= 320;
+			Duck_Y_Pos <= 429;
+			Duck_X_Motion <= 1;
+			Duck_Y_Motion <= -1;
+			count_min <= 1;
+			count_max <= 1;
+			score <= 0;
+			lives <= 5;
+			bullet <= 0;
+			shoot_past <= 1;
+			is_gameover <= 0;
+			is_start <= 1;
+        end
+        else if (escape_on == 1 && is_gameover == 1)
+        begin
+        	Duck_X_Pos <= 320;
+			Duck_Y_Pos <= 429;
+			Duck_X_Motion <= 1;
+			Duck_Y_Motion <= -1;
+			count_min <= 1;
+			count_max <= 1;
+			score <= 0;
+			lives <= 5;
+			bullet <= 0;
+			shoot_past <= 1;
+			is_gameover <= 0;
+			is_start <= 1;
+        end
+        else if (start_on == 1 && is_gameover == 1)
+        begin
+        	Duck_X_Pos <= 320;
+			Duck_Y_Pos <= 429;
+			Duck_X_Motion <= 1;
+			Duck_Y_Motion <= -1;
+			count_min <= 1;
+			count_max <= 1;
+			score <= 0;
+			lives <= 5;
+			bullet <= 0;
+			shoot_past <= 1;
+			is_gameover <= 0;
+			is_start <= 0;
+        end
+        else if (lives == 0)
+        begin
+        	Duck_X_Pos <= 320;
+			Duck_Y_Pos <= 429;
+			Duck_X_Motion <= 1;
+			Duck_Y_Motion <= -1;
+			count_min <= 1;
+			count_max <= 1;
+			score <= 0;
+			lives <= 5;
+			bullet <= 0;
+			shoot_past <= 1;
+			is_gameover <= 1;
+			is_start <= 0;
+        end
+        else if (frame_clk_rising_edge)        // Update only at rising edge of frame clock
+        begin
+            Duck_X_Pos <= Duck_X_Pos_in;
+            Duck_Y_Pos <= Duck_Y_Pos_in;
+			Duck_X_Motion <= Duck_X_Motion_in;
+            Duck_Y_Motion <= Duck_Y_Motion_in;
+			count_min <= count_min_in;
+			count_max <= count_max_in;
+			shoot_past <= shoot;
+			if (shoot==1 && shoot_past==0)
+				bullet <= bullet+1;
+			if(Duck_Y_Pos > 468 & Duck_Y_Motion > 0)
+				score <= score+1'b1;
+			if(Duck_Y_Pos == 0)	
+			begin
+				lives <= lives-1;
+				score <= score-1'b1;
+			end
+        // By defualt, keep the register values.
+    end
+	 
+
+    // You need to modify always_comb block.
+    always_comb
+    begin
+				
+			count_min_in = count_min;
+			count_max_in = count_max;
+			//Duck_X_Min_in = Duck_X_Min;
+			//Duck_X_Max_in = Duck_X_Max;
+			
+			//SET THE DUCKS WALLS TO DETERMINE MOTION
+			if(count_min==1)
+				Duck_X_Min = 100;		
+			else if(count_min==2)
+				Duck_X_Min = 200;		
+		   else
+				Duck_X_Min = 300;
+
+			if(count_max==1)
+				Duck_X_Max = 200;	
+			else if(count_max==2)
+				Duck_X_Max = 360;	
+			else if(count_max==3)
+				Duck_X_Max = 600;	
+		    else
+				Duck_X_Max = 420;
+
+			//SET DEFAULT POSITION AND MOTION VALUES
+			Duck_X_Pos_in = Duck_X_Pos + Duck_X_Motion;
+        	Duck_Y_Pos_in = Duck_Y_Pos + Duck_Y_Motion;
+			
+			Duck_X_Motion_in = Duck_X_Motion;
+         	Duck_Y_Motion_in = Duck_Y_Motion;
+			
+			
+			
+        
+
+			//DETERMINE COLLISION WITH TOP AND BOTTOM OF SCREEN
+			
+			if (Duck_Y_Pos + Duck_SizeY <= Duck_Y_Min  )  // duck as the top, go back to the bottom
+			begin
+            Duck_Y_Pos_in = 468;		
+
+			end
+			else if (Duck_Y_Pos > 468 & Duck_Y_Motion > 0 )  // duck is at the bottom and is moving downward, stop moving and move to different location
+			begin
+            Duck_Y_Pos_in = 468;
+				if(score>=12 & score >=0)
+					Duck_Y_Motion_in = -4;
+				else if(score>=8 & score >=0)
+					Duck_Y_Motion_in = -3;
+				else if(score>=4 & score >=0)
+					Duck_Y_Motion_in = -2;	
+				else 
+					Duck_Y_Motion_in = -1;			
+			   if(count_min<3)
+						count_min_in = count_min+1;
+				else	
+						count_min_in = 1;
+						
+			   if(count_min<4)
+						count_min_in = count_min+1;
+				else	
+						count_min_in = 1;
+					
+					
+				if(count_max==1)
+				begin
+				   count_max_in=2;
+					Duck_X_Pos_in = 360;
+				end
+			   else if(count_max==2)	
+				begin
+					count_max_in=3;
+		         Duck_X_Pos_in = 600;			
+				end
+				else if(count_max==3)	
+				begin
+					count_max_in=4;
+		         Duck_X_Pos_in = 420;			
+				end
+				else 
+				begin
+					count_max_in=1;
+		         Duck_X_Pos_in = 200;			
+				end	
+		   end
+			
+				//CALCULATE MOTION DEPENDING ON BOUNCING OF WALLS
+
+			if( Duck_X_Pos >= Duck_X_Max )  // duck right wall bounce
+			begin  	
+					if(score>=12)
+						Duck_X_Motion_in = -4;
+					else if(score>=8)
+						Duck_X_Motion_in = -3;
+					else if(score>=4)
+						Duck_X_Motion_in = -2;	
+					else 
+						Duck_X_Motion_in = -1;	
+			end
+			else if ( Duck_X_Pos <= Duck_X_Min )  // duck left wall bounce
+			begin
+					if(score>=12)
+						Duck_X_Motion_in = 4;
+					else if(score>=8)
+						Duck_X_Motion_in = 3;
+					else if(score>=4)
+						Duck_X_Motion_in = 2;	
+					else 
+						Duck_X_Motion_in = 1;
+			end
+			
+				
+				
+		//COLLISION DETECTION WITH TARGET	
+				
+		if(spacebar_on & (scope_X_Pos + 30 > Duck_X_Pos) & (scope_X_Pos+30 < Duck_X_Pos + Duck_SizeX) & (scope_Y_Pos+30 > Duck_Y_Pos) & (scope_Y_Pos+30 < Duck_Y_Pos + Duck_SizeY))
+		begin
+			Duck_X_Motion_in=1'b0;
+			Duck_Y_Motion_in=12;
+
+		end
+		
+		  //ACCESSING THE DUCK ARRAY FOR DRAWING
+		
+		  if ( DistX <= SizeX & DistX >= 0  & DistY <= SizeY & DistY >= 0) 
+		  begin
+            is_duck = 1'b1;
+				Duck_Draw_X = DrawX - Duck_X_Pos;
+				Duck_Draw_Y = DrawY - Duck_Y_Pos;
+		  end	
+          else
+		  begin
+            is_duck = 1'b0;
+				Duck_Draw_X = 1'b0;
+				Duck_Draw_Y = 1'b0;
+		  end
+    end
+    
+endmodule
+
+

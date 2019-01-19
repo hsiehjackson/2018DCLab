@@ -1,0 +1,19 @@
+ncverilog(64): 12.20-s012: (c) Copyright 1995-2013 Cadence Design Systems, Inc.
+TOOL:	ncverilog	12.20-s012: Started on Nov 05, 2018 at 16:30:29 CST
+ncverilog
+	Top.sv
+Recompiling... reason: file './Top.sv' is newer than expected.
+	expected: Sat Sep 29 17:07:59 2018
+	actual:   Wed Oct 10 14:40:11 2018
+file: Top.sv
+	end
+	  |
+ncvlog: *E,NOTSTT (Top.sv,112|3): expecting a statement [9(IEEE)].
+endmodule
+        |
+ncvlog: *E,NOTSTT (Top.sv,115|8): expecting a statement [9(IEEE)].
+	module worklib.Top:sv
+		errors: 2, warnings: 0
+ncvlog: *F,NOTOPL: no top-level unit found, must have recursive instances.
+ncverilog: *E,VLGERR: An error occurred during parsing.  Review the log file for errors with the code *E and fix those identified problems to proceed.  Exiting with code (status 2).
+TOOL:	ncverilog	12.20-s012: Exiting on Nov 05, 2018 at 16:30:29 CST  (total: 00:00:00)

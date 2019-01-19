@@ -1,0 +1,20 @@
+
+State Machine - |DE2_115_CAMERA|DuckHunter:DuckHunter|randomDuck:duck_instance|count_max2
+Name count_max2.000000011 count_max2.000000010 count_max2.000000001 count_max2.000000100 
+count_max2.000000001 0 0 0 0 
+count_max2.000000010 0 1 1 0 
+count_max2.000000011 1 0 1 0 
+count_max2.000000100 0 0 1 1 
+
+State Machine - |DE2_115_CAMERA|DuckHunter:DuckHunter|randomDuck:duck_instance|count_max
+Name count_max.000000011 count_max.000000010 count_max.000000001 count_max.000000100 
+count_max.000000001 0 0 0 0 
+count_max.000000010 0 1 1 0 
+count_max.000000011 1 0 1 0 
+count_max.000000100 0 0 1 1 
+
+State Machine - |DE2_115_CAMERA|I2C_CCD_Config:u8|mSetup_ST
+Name mSetup_ST.0000 mSetup_ST.0010 mSetup_ST.0001 
+mSetup_ST.0000 0 0 0 
+mSetup_ST.0001 1 0 1 
+mSetup_ST.0010 1 1 0 

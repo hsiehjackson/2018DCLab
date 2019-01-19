@@ -1,0 +1,54 @@
+
+module	direction(
+	clk,
+	rst,
+	X_center,
+	Y_center,
+	light);
+
+
+input  [12:0]  X_center;
+input  [12:0]  Y_center;
+output reg [3:0] light;
+reg [12:0] X_center_r;
+reg [12:0] Y_center_r;
+
+wire[12:0] X_center_w, Y_center_w, X_center_before, Y_center_before; 
+wire up,down,left,right;
+assign X_center_w = X_center;
+assign Y_center_w = Y_center;
+assign X_center_before = X_center_r; 
+assign Y_center_before = Y_center_r;
+assign up = ((Y_center_w - Y_center_before) < 0) ? 1:0
+assign down = ((Y_center_w - Y_center_before) > 0) ? 1:0
+assign left = ((X_center_w - X_center_before) < 0) ? 1:0
+assign right = ((X_center_w - X_center_before) > 0) ? 1:0
+
+always@(posedge clk or negedge rst)
+	begin
+		if (!rst)
+			begin
+				X_center_r <= X_center_r;
+				Y_center_r <= Y_center_r;
+			end
+		else
+			begin
+				X_center_r <= X_center_w;
+				Y_center_r <= Y_center_w;
+			end
+	end
+always@(posedge clk or negedge rst)
+	begin
+		if (!rst)
+			begin
+				light <= 0;
+			end
+		else
+			begin
+				light[0] <= up;
+				light[1] <= down;
+				light[2] <= left;
+				light[3] <= right;
+			end
+	end
+endmodule // direction
